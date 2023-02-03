@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
+import Card from "../Components/Card";
 import FormField from "../Components/FormField";
 import Loader from "../Components/Loader";
 
@@ -18,7 +19,9 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState(null);
-  const [searchText, setSearchText] = useState("abc");
+  const [searchText, setSearchText] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchTimeout, setsearchTimeout] = useState(null)
 
 
   useEffect(() => {
@@ -26,7 +29,7 @@ const Home = () => {
       setLoading(true);
 
       try {
-        const response = await fetch('http://localhost:8080/api/post',{
+        const response = await fetch('https://dall-e-yp2s.onrender.com/api/post',{
           method : 'GET',
           headers :{
             'Content-Type' : 'application/json',
@@ -45,8 +48,21 @@ const Home = () => {
   
     
 
+    fetchPosts();
+  }, []);
+
+  const handleSearchChange = (e)=>{
+    setSearchText(e.target.value);
+
+    setsearchTimeout(
+      setTimeout(()=>{
+        const searchResults = allPosts.filter((item)=>item.name.toLowerCase().includes(searchText.toLowerCase()) || item.prompt.toLowerCase().includes(searchText.toLocaleLowerCase())); 
+  
+        setSearchResults(searchResults);
+      },500)
+    )
     
-  }, [])
+  }
   
 
   return (
@@ -61,7 +77,14 @@ const Home = () => {
         </p>
       </div>
       <div className="mt-16">
-        <FormField />
+        <FormField 
+        LabelName="Search posts"
+        type="text"
+        name="text"
+        placeholder="Search posts"
+        value={searchText}
+        handleChange={handleSearchChange}
+        />
       </div>
       <div className="mt-10">
         {loading ? (
@@ -78,7 +101,7 @@ const Home = () => {
             )}
             <div className="grid lg:grid-cols-4 sm:grid-cols-3 xs:grid-cols-2 grid-cols-1 gap-3">
               {searchText ? (
-                <RenderCards data={allPosts} title="No search results found" />
+                <RenderCards data={searchResults} title="No search results found" />
               ) : (
                 <RenderCards data={allPosts} title="No posts found" />
               )}

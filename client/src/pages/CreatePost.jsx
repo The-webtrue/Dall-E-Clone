@@ -17,8 +17,30 @@ const CreatePost = () => {
     const [generatingImg,setGeneratingImg]= useState(false);
     const[loading,setLoading] = useState(false);
 
-    const generateImg =()=>{
-        
+    const generateImg = async()=>{
+        if(form.prompt){
+            try {
+                setGeneratingImg(true);
+                const response = await fetch('http://localhost:8080/api/dalle',{
+                    method : 'POST',
+                    headers : {
+                        'Content-Type' : 'application/json',
+                    },
+                    body: JSON.stringify({prompt:form.prompt}),
+                })
+
+                const data = await response.json();
+
+                setForm({...form,photo:`data:image/jpeg;base64,${data.photo}`})
+            } catch (error) {
+                alert(error);
+                console.log(error);
+            } finally{
+                setGeneratingImg(false);
+            }
+        }else{
+            alert('Please enteer a prompt')
+        }
     }
 
     const handleSubmit=()=>{
@@ -30,10 +52,10 @@ const CreatePost = () => {
 
     }
 
-    const handleSurpriseMe =()=>{
+    const handleSurpriseMe = () => {
         const randomPrompt = getRandomPrompt(form.prompt);
-        setForm({...form,prompt:randomPrompt})
-    }
+        setForm({ ...form, prompt: randomPrompt });
+      };
 
     return (
         <section className='max-w-7xl mx-auto'>
@@ -58,14 +80,14 @@ const CreatePost = () => {
             />
             <FormField
             LabelName="Prompt"
-            type = "text"
-            name="prop"
-            placeholder="an oil painting by Matisse of a humanoid robot playing chess"
-            value={form.name}
+            type="text"
+            name="prompt"
+            placeholder="An Impressionist oil painting of sunflowers in a purple vase…"
+            value={form.prompt}
             handleChange={handleChange}
             isSurpriseMe
             handleSurpriseMe={handleSurpriseMe}
-            />
+          />
             <div className='relative bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-lg focus:ring-blue-500 focus:border-blue-500 w-64 p-3 h-64 flex justify-center items-center'>
                 {
                     form.photo ? (
